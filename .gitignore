@@ -1,0 +1,77 @@
+# Document Extractor - Configuración de desarrollo
+
+# Archivos de Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Logs de Artemis
+artemis/logs/*.log
+artemis/logs/*.log.*
+
+# Resultados de procesamiento
+artemis/results/*.json
+
+# Archivos del sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# Archivos de configuración locales
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Coverage y testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+
+# Distribución
+dist/
+build/
+*.egg-info/
+.egg
+
+# Archivos temporales de documentos (para testing)
+test_documents/
+temp_files/
+*.tmp
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Archivos específicos del proyecto
+output/
+extracciones/
+documentos_procesados/
+docker-compose.yml

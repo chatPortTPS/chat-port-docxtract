@@ -1,0 +1,26 @@
+{
+  "mappings": {
+    "properties": {
+      "doc_id":      { "type": "keyword" },
+      "chunk_index": { "type": "integer" },
+      "page":        { "type": "integer" },
+      "section":     { "type": "keyword" },
+      "tokens":      { "type": "integer" },
+
+      "areas":       { "type": "keyword" },       
+      "metadata":    { "type": "flattened" }, 
+
+      "content_raw": { "type": "text" },
+      "title":       { "type": "text" },
+      "source_url":  { "type": "keyword" },
+
+      "content_vector": {
+        "type": "dense_vector",
+        "dims": 384,
+        "index": true,
+        "similarity": "cosine"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,6 @@
+/documentos_download
+/.venv
+__pycache__
+.env
+README.md
+/logs
