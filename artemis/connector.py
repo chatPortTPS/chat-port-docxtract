@@ -305,10 +305,11 @@ class ArtemisMessageListener(stomp.ConnectionListener):
                     
                     # ACK del mensaje si el handler no falló
                     self.connector.connection.ack(message_id, subscription_id)
-                    logger.debug(f"Mensaje {message_id} procesado y confirmado")
+                    logger.info(f"Mensaje {message_id} procesado y ACK enviado correctamente")
                     
                 except Exception as e:
                     logger.error(f"Error en handler de mensaje {message_id}: {e}")
+                    logger.error(f"Enviando NACK para mensaje {message_id} - será devuelto a la cola")
                     # NACK del mensaje para reintento
                     self.connector.connection.nack(message_id, subscription_id)
             else:

@@ -48,7 +48,7 @@ from artemis import ArtemisConnector
 class DocumentProcessor:
     """Aplicación principal del sistema de procesamiento de documentos."""
 
-    def __init__(self):
+    def __init__(self, text_vectorizer: TextVectorizer):
         """Inicializa el procesador de documentos."""
         self.sftp_connector = None
         self.document_text_converter = None
@@ -56,8 +56,16 @@ class DocumentProcessor:
         self.texto = None
         self.splitter = None
         self.fragments = []
-        self.vectorizer = None
-        self.areas = ["Operaciones", "Seguridad"]
+        self.vectorizer = text_vectorizer
+        self.areas = None
+
+        self.nombre = None
+        self.privacidad = None
+        self.creacion = None
+        self.actualizacion = None
+        self.correo = None
+        self.autor = None
+
         self._initialize_components()
 
 
@@ -66,8 +74,7 @@ class DocumentProcessor:
         self.sftp_connector = SftpConnector()
         self.document_text_converter = DocumentTextConverter()
         self.splitter = TextSplitter()
-        self.vectorizer = TextVectorizer()
-        self.es_connector = ElasticsearchConnector() 
+        self.es_connector = ElasticsearchConnector()
 
 
     def download_file(self):
@@ -114,14 +121,16 @@ class DocumentProcessor:
 
             "areas": self.areas,
             "metadata": {
-                "titulo": self.texto.get('metadatos', {}).get('titulo', ''),
-                "autor": self.texto.get('metadatos', {}).get('autor', ''),
-                "fecha_creacion": self.texto.get('metadatos', {}).get('fecha_creacion', ''),
-                "fecha_modificacion": self.texto.get('metadatos', {}).get('fecha_modificacion', '')
+                "titulo": self.nombre,
+                "autor": self.autor,
+                "fecha_creacion": self.creacion,
+                "fecha_modificacion": self.actualizacion,
+                "correo": self.correo,
+                "privacidad": self.privacidad 
             },
 
             "content_raw": fragment.get('text', ''),
-            "title": self.texto.get('metadatos', {}).get('titulo', ''),
+            "title": self.nombre,
             "source_url": self.document_uuid,
 
             "content_vector": []
@@ -155,21 +164,37 @@ class DocumentProcessor:
 def main():
     
     try:
+
+        # 1. Inicializar TextVectorizer (carga el modelo, puede tardar)
+        text_vectorizer = TextVectorizer()
+
+        # 2. Inicializar ArtemisConnector posterior a la carga del modelo
+        artemis_connector = ArtemisConnector()
+
   
         def handler(message: Dict[str, Any]):
             """Maneja un mensaje recibido de Artemis."""
             try:
-                processor = DocumentProcessor()
+                print(f"Mensaje recibido de Artemis: {json.dumps(message, indent=2, ensure_ascii=False, default=str)}")
                 
-                processor.document_uuid = message.get('document_uuid')
-                processor.areas = message.get('areas', [])
- 
+                datos_array = message.get('data', {}).get('datos', [])
+                data = datos_array[0] if datos_array else {}
+                if not data:
+                    raise ValueError("El mensaje no contiene los datos requeridos")
+
+                processor = DocumentProcessor(text_vectorizer)
+                processor.document_uuid = data.get('archivo')
+                processor.areas = data.get('areas', [])
+                processor.nombre = data.get('nombre')
+                processor.privacidad = data.get('privacidad')
+                processor.creacion = data.get('creacion')
+                processor.actualizacion = data.get('actualizacion')
+                processor.correo = data.get('correo')
+                processor.autor = data.get('autor')
+
                 if not processor.document_uuid:
                     raise ValueError("El mensaje no contiene 'document_uuid' del documento")
-                
-                if processor.areas is []:
-                    raise ValueError("El mensaje no contiene 'areas' del documento")
-
+ 
                 success = processor.download_file()
                 if not success:
                     raise Exception("No se pudo descargar el archivo desde SFTP")
@@ -177,34 +202,42 @@ def main():
                 processor.extraer_documento()
                 if not processor.texto:
                     raise Exception("No se pudo extraer texto del documento")
-            
+                
                 fragments = processor.split_text()
                 if not fragments:
                     raise Exception("No se pudieron crear fragmentos de texto")
-                
+ 
                 processor.vectorize_fragments()
 
                 if not processor.fragments:
                     raise Exception("No se pudieron vectorizar los fragmentos de texto")
-                
-                for i, fragment in enumerate(processor.fragments):
+
+                for i, fragment in enumerate(processor.fragments): 
                     print(f"Fragmento {i+1}/{len(processor.fragments)}: {json.dumps(fragment, indent=2, ensure_ascii=False)}")
                     processor.send_to_elasticsearch(fragment)
 
             except Exception as e:
                 print(f"Error en el procesamiento del documento: {e}")
+ 
+        
+        if not artemis_connector.connect():
+            raise Exception("No se pudo conectar a Artemis")
 
-
-        # Crear instancia del procesador
-        artemis_connector = ArtemisConnector()
-        artemis_connector.connect()
-
-        artemis_connector.subscribe_to_queue(
+        subscription_id = artemis_connector.subscribe_to_queue(
             message_handler=handler, 
             subscription_id='tps-gestor-documental-movimientos'
         )
 
-        artemis_connector.start_listening()
+        print(f"Suscrito a la cola con el ID: {subscription_id}")
+
+        # 5. Iniciar escucha (bloquea el hilo)
+        try:
+            artemis_connector.start_listening()
+        except KeyboardInterrupt:
+            print("Deteniendo...")
+        finally:
+            # 6. Desconectar al terminar
+            artemis_connector.disconnect()
  
 
     except Exception as e:
