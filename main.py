@@ -22,16 +22,11 @@ from typing import Dict, Any, List, Optional
 import time
 import traceback
 
-# Crear directorio de logs si no existe
-log_dir = Path('logs')
-log_dir.mkdir(exist_ok=True)
-
-# Configurar logging
+# Configurar logging solo para terminal o el stdout
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(log_dir / 'document_processor.log'),
         logging.StreamHandler()
     ]
 )
