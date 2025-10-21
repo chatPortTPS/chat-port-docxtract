@@ -35,5 +35,9 @@ COPY . /app
 # Create data directory used by the app for downloaded documents
 RUN mkdir -p /documentos_download && chmod 777 /documentos_download
 
+# Pre-download the model during build (optional)
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+
+
 # Run the main application
 CMD ["python", "-u", "main.py"]
