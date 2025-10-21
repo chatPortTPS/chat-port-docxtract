@@ -34,7 +34,6 @@ COPY . /app
 
 # Create data directory used by the app for downloaded documents
 RUN mkdir -p /documentos_download && chmod 777 /documentos_download
-VOLUME ["/documentos_download"]
 
 # Run the main application
 CMD ["python", "-u", "main.py"]
