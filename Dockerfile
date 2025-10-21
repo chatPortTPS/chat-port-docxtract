@@ -32,6 +32,7 @@ RUN python -m pip install --upgrade pip \
 # Copy app source code
 COPY . /app
 
+
 # Create data directory used by the app for downloaded documents
 RUN mkdir -p /documentos_download && chmod 777 /documentos_download
 
