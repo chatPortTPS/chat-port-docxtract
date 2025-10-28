@@ -45,7 +45,10 @@ def get_elasticsearch_config():
         'username': os.getenv('ELASTICSEARCH_USERNAME', 'elastic'),
         'password': os.getenv('ELASTICSEARCH_PASSWORD', 'elastic'),
         'timeout': int(os.getenv('ELASTICSEARCH_TIMEOUT', '30')),
-        'index_name': os.getenv('ELASTICSEARCH_INDEX_NAME', 'index_documents')
+        'index_name': os.getenv('ELASTICSEARCH_INDEX_NAME', 'index_documents'),
+        'verify_certs': os.getenv('ELASTICSEARCH_VERIFY_CERTS', 'false').lower() == 'true',
+        'ssl_show_warn': os.getenv('ELASTICSEARCH_SSL_SHOW_WARN', 'false').lower() == 'true',
+        'ca_cert_path': os.getenv('ELASTICSEARCH_CA_CERT_PATH', None)
     }
 
 def get_text_splitter_config():
