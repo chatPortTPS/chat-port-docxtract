@@ -148,6 +148,8 @@ class DocumentProcessor:
                 "keywords": self.keywords  # Agregar palabras clave extraídas
             },
 
+            "ruta": self.ruta,
+
             "content_raw": fragment.get('text', ''),
             "title": self.nombre,
             "source_url": self.document_uuid,
