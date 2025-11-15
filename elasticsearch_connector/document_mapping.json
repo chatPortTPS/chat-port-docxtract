@@ -14,6 +14,8 @@
       "title":       { "type": "text" },
       "source_url":  { "type": "keyword" },
 
+      "ruta":       { "type": "keyword" },  
+
       "content_vector": {
         "type": "dense_vector",
         "dims": 384,

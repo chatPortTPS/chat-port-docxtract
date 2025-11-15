@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chat-port-docxtract-v1
+    container_name: chat-port-docxtract
+    environment:
+      # SFTP
+      - SFTP_HOSTNAME=10.30.100.182
+      - SFTP_PORT=22
+      - SFTP_USERNAME=desarrollo
+      - SFTP_PASSWORD=desa#rrollo
+      - SFTP_REMOTE_PATH=/mnt/sgd_qa
+      - SFTP_TIMEOUT=30
+      - SFTP_MAX_RETRIES=3
+      - SFTP_LOAD_DIRECTORY=/documentos_download
+
+      # Elasticsearch
+      - ELASTICSEARCH_HOST=host.docker.internal
+      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_SCHEME=http
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=elastic
+      - ELASTICSEARCH_TIMEOUT=30
+      - ELASTICSEARCH_INDEX_NAME=tps-gestor-documental
+
+      # LangChain splitter
+      - TEXT_CHUNK_SIZE=1000
+      - TEXT_CHUNK_OVERLAP=200
+
+      # Vectorization
+      - VECTORIZATION_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - VECTORIZATION_DEVICE=cpu
+      - VECTORIZATION_BATCH_SIZE=32
+
+      # Artemis (opcional)
+      - ARTEMIS_HOST=host.docker.internal
+      - ARTEMIS_PORT=61616
+      - ARTEMIS_USERNAME=artemis
+      - ARTEMIS_PASSWORD=artemis
+      - ARTEMIS_VIRTUAL_HOST=/
+      - ARTEMIS_QUEUE=tps-gestor-documental-movimientos
+      - ARTEMIS_MAX_RECONNECT_ATTEMPTS=10
+      - ARTEMIS_RECONNECT_DELAY=5
+      - ARTEMIS_CONNECTION_TIMEOUT=30
+
+    volumes:
+      - .:/app
+
+    # Si necesitas conectarte a servicios en localhost del host, puedes usar host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    restart: unless-stopped
+
+    # Comando por defecto ya definido en Dockerfile (python -u main.py)
+    # command: ["python", "-u", "main.py"]
+
+volumes:
+  documentos_download:
+    driver: local
+

@@ -30,8 +30,7 @@ class Pdf:
             'índice', 'index', 'contenido', 'contents', 'tabla de contenido',
             'table of contents', 'resumen ejecutivo', 'executive summary'
         ]
-
-
+ 
     def _normalize_text(self, text):
         text = text.lower()
         text = ''.join(

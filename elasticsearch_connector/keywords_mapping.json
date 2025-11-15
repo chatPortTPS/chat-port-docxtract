@@ -1,0 +1,11 @@
+{
+  "mappings": {
+    "properties": {
+      "ruta":       { "type": "keyword" },
+      "documento":  { "type": "keyword" },
+      "keywords":   { "type": "keyword" },
+      "titulo":     { "type": "keyword" },
+      "fecha":      { "type": "date" }
+    }
+  }
+}

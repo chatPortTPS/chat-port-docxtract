@@ -39,6 +39,7 @@ from langchain.text_splitter import TextSplitter
 from vectorization.text_vectorizer import TextVectorizer
 from elasticsearch_connector.connector import ElasticsearchConnector
 from artemis import ArtemisConnector
+from keywords import KeywordExtractor
 
 class DocumentProcessor:
     """Aplicación principal del sistema de procesamiento de documentos."""
@@ -52,6 +53,8 @@ class DocumentProcessor:
         self.splitter = None
         self.fragments = []
         self.vectorizer = text_vectorizer
+        self.keyword_extractor = None
+        self.keywords = []
         self.areas = None
 
         self.nombre = None
@@ -60,6 +63,7 @@ class DocumentProcessor:
         self.actualizacion = None
         self.correo = None
         self.autor = None
+        self.ruta = None
 
         self._initialize_components()
 
@@ -70,6 +74,10 @@ class DocumentProcessor:
         self.document_text_converter = DocumentTextConverter()
         self.splitter = TextSplitter()
         self.es_connector = ElasticsearchConnector()
+
+        # Inicializar extractor de palabras clave (usando KeyBERT por defecto)
+        # Opciones: 'keybert', 'yake', 'rake', 'tfidf', 'all'
+        self.keyword_extractor = KeywordExtractor(method='keybert', top_n=5)
 
 
     def download_file(self):
@@ -90,7 +98,22 @@ class DocumentProcessor:
         """Extrae el contenido del documento descargado."""
         self.texto = self.document_text_converter.extraer_documento(nombre_archivo=self.document_uuid)
         return self.texto
-    
+
+    def extract_keywords(self) -> List[Dict[str, Any]]:
+        """Extrae palabras clave del documento usando el algoritmo configurado."""
+        if self.keyword_extractor is None:
+            raise ValueError("KeywordExtractor no está disponible")
+
+        texto_completo = self.texto.get('contenido', {}).get('texto', '')
+
+        if not texto_completo:
+            raise ValueError("No hay texto para extraer palabras clave")
+
+        self.keywords = self.keyword_extractor.extract_keywords(texto_completo)
+        logger.info(f"Palabras clave extraídas: {len(self.keywords)}")
+
+        return self.keywords
+
     def split_text(self) -> List[Dict[str, Any]]:
         """Divide el texto en fragmentos usando LangChain."""
         if self.splitter is None:
@@ -121,7 +144,8 @@ class DocumentProcessor:
                 "fecha_creacion": self.creacion,
                 "fecha_modificacion": self.actualizacion,
                 "correo": self.correo,
-                "privacidad": self.privacidad 
+                "privacidad": self.privacidad,
+                "keywords": self.keywords  # Agregar palabras clave extraídas
             },
 
             "content_raw": fragment.get('text', ''),
@@ -147,14 +171,33 @@ class DocumentProcessor:
         """Envía un fragmento a Elasticsearch.""" 
         try:
             self.es_connector.connect()
-            success = self.es_connector.save_document(fragment)
+            success = self.es_connector.save_document(fragment, self.document_uuid)
             self.es_connector.disconnect()
             return success
         except Exception as e:
             print(f"Error enviando fragmento a Elasticsearch: {e}")
             return False
+        
+    def send_to_elasticsearch_keywords(self) -> bool:
+        """Envía las palabras clave del documento a Elasticsearch como metadato del documento.
+           Se envia por un indice separado ya que son las keywords completas del documento, no de un fragmento.
+           Evita duplicados.
+        """
+        
+        try:
+            self.es_connector.connect()
+            success = self.es_connector.save_document_keywords(
+                doc_id=self.document_uuid,
+                ruta=self.ruta,
+                titulo=self.nombre,
+                keywords=self.keywords
+            )
+            self.es_connector.disconnect()
+            return success
+        except Exception as e:
+            print(f"Error enviando palabras clave a Elasticsearch: {e}")
+            return False
 
- 
 
 def main():
     
@@ -186,6 +229,7 @@ def main():
                 processor.actualizacion = data.get('actualizacion')
                 processor.correo = data.get('correo')
                 processor.autor = data.get('autor')
+                processor.ruta = data.get('ruta')
 
                 if not processor.document_uuid:
                     raise ValueError("El mensaje no contiene 'document_uuid' del documento")
@@ -197,7 +241,11 @@ def main():
                 processor.extraer_documento()
                 if not processor.texto:
                     raise Exception("No se pudo extraer texto del documento")
-                
+
+                # Extraer palabras clave del documento
+                keywords = processor.extract_keywords()
+                print(f"Palabras clave extraídas: {json.dumps(keywords, indent=2, ensure_ascii=False)}")
+
                 fragments = processor.split_text()
                 if not fragments:
                     raise Exception("No se pudieron crear fragmentos de texto")
@@ -211,9 +259,11 @@ def main():
                     print(f"Fragmento {i+1}/{len(processor.fragments)}: {json.dumps(fragment, indent=2, ensure_ascii=False)}")
                     processor.send_to_elasticsearch(fragment)
 
+                # Guardar los keywords en Elasticsearch como metadato del documento
+                processor.send_to_elasticsearch_keywords()
+
             except Exception as e:
                 print(f"Error en el procesamiento del documento: {e}")
- 
         
         if not artemis_connector.connect():
             raise Exception("No se pudo conectar a Artemis")
@@ -224,6 +274,7 @@ def main():
         )
 
         print(f"Suscrito a la cola con el ID: {subscription_id}")
+        
 
         # 5. Iniciar escucha (bloquea el hilo)
         try:
@@ -237,8 +288,6 @@ def main():
 
     except Exception as e:
         print(f"Error en la aplicación principal: {e}")
-    
-    
 
 if __name__ == "__main__":
     main()

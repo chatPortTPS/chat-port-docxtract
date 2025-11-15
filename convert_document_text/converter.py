@@ -21,7 +21,10 @@ import pandas as pd
 
 from .config_text import load_config
 
-from .pdf import Pdf    
+from .pdf import Pdf
+from .word import Word
+from .ppt import Ppt
+from .excel import Excel
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -59,11 +62,23 @@ class DocumentTextConverter:
 
     def initialize_supported_types(self):
         """Inicializa los tipos de archivo soportados."""
-        self.tipos_soportados = ['.pdf', '.docx', '.xlsx']
+        self.tipos_soportados = ['.pdf', '.docx', '.xlsx', '.pptx']
 
         if '.pdf' in self.tipos_soportados:
             print("Soporte para PDF habilitado.")
             self.pdf_extractor = Pdf()
+
+        if '.docx' in self.tipos_soportados:
+            print("Soporte para Word habilitado.")
+            self.word_extractor = Word()
+
+        if '.pptx' in self.tipos_soportados:
+            print("Soporte para PowerPoint habilitado.")
+            self.ppt_extractor = Ppt()
+
+        if '.xlsx' in self.tipos_soportados:
+            print("Soporte para Excel habilitado.")
+            self.excel_extractor = Excel()
 
 
     def extraer_documento(self, nombre_archivo: str) -> Dict[str, Any]:
@@ -94,6 +109,12 @@ class DocumentTextConverter:
         
         if extension not in self.tipos_soportados:
             raise ValueError(f"Tipo de archivo no soportado: {extension}")
-         
+
         if extension == '.pdf':
             return self.pdf_extractor.procesar_pdf(str(ruta))
+        elif extension == '.docx':
+            return self.word_extractor.procesar_word(str(ruta))
+        elif extension == '.pptx':
+            return self.ppt_extractor.procesar_ppt(str(ruta))
+        elif extension == '.xlsx':
+            return self.excel_extractor.procesar_excel(str(ruta))

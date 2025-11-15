@@ -7,7 +7,7 @@ Módulo simple para conectarse a Elasticsearch y guardar documentos en un índic
 
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 import os
 from pathlib import Path
@@ -50,6 +50,7 @@ class ElasticsearchConnector:
         
         # Obtener nombre del índice desde configuración
         self.index_name = self.config.get('index_name', 'tps-gestor-documental')
+        self.index_name_keywords = self.index_name + '_keywords'
     
 
     def connect(self) -> bool:
@@ -121,11 +122,8 @@ class ElasticsearchConnector:
         except Exception as e:
             logger.error(f"Error inesperado al crear índice '{self.index_name}': {e}")
             return False
-            return False
-        except Exception as e:
-            logger.error(f"Error inesperado al crear índice '{self.index_name}': {e}")
-            return False
     
+
     def save_document(self, document: Dict[str, Any], doc_id: str = None) -> bool:
         """
         Guarda un documento en el índice de Elasticsearch
@@ -148,10 +146,15 @@ class ElasticsearchConnector:
             
             # Indexar documento
             if doc_id:
+                # primero se intenta eliminar el documento si ya existe
+                self.es.delete(index=self.index_name, id=doc_id, ignore=[404])
+
                 response = self.es.index(index=self.index_name, id=doc_id, body=document)
+        
             else:
-                response = self.es.index(index=self.index_name, body=document)
-                
+                logger.error("No se proporcionó doc_id para el documento")
+                return False
+            
             logger.info(f"Documento guardado: {doc_id or response['_id']} en índice {self.index_name}")
 
             return response['result'] in ['created', 'updated']
@@ -160,6 +163,51 @@ class ElasticsearchConnector:
             logger.error(f"Error al guardar documento {doc_id}: {e}")
             return False
     
+    def save_document_keywords(self, doc_id: str, ruta: str, titulo: str, keywords: List[Dict[str, Any]]) -> bool:
+        """
+        Guarda los keywords de un documento como metadato en Elasticsearch
+        
+        Args:
+            doc_id: ID único del documento
+            ruta: Ruta del documento
+            titulo: Título del documento
+            keywords: Lista de keywords a guardar
+            
+        Returns:
+            True si se guardaron correctamente, False en caso contrario
+        """
+        if not self.connected:
+            logger.error("No hay conexión con Elasticsearch")
+            return False
+        
+        try: 
+            
+            # Antes de guardar se debe eliminar el documento si ya existe para evitar duplicados
+            self.es.delete(index=self.index_name_keywords, id=doc_id, ignore=[404])
+
+            # Preparar cuerpo de actualización
+            document = {
+                "ruta": ruta,
+                "titulo": titulo,
+                "documento": doc_id,
+                "keywords": keywords, 
+                "fecha": datetime.now().isoformat()
+            }
+
+            # Actualizar el documento con los keywords
+            response = self.es.index(index=self.index_name_keywords, id=doc_id, body=document)
+            
+            logger.info(f"Keywords guardados para documento {doc_id} en índice {self.index_name_keywords}")
+
+            return response['result'] == 'created'
+            
+        except NotFoundError:
+            logger.error(f"Documento {doc_id} no encontrado en índice {self.index_name_keywords}")
+            return False
+        except Exception as e:
+            logger.error(f"Error al guardar keywords para documento {doc_id}: {e}")
+            return False
+
     def __enter__(self):
         """Context manager entry"""
         if not self.connected:
