@@ -208,8 +208,8 @@ def main():
                 if not processor.document_uuid:
                     raise ValueError("El mensaje no contiene 'document_uuid' del documento")
                 
-                if processor.areas is None:
-                    processor.areas = processor.areas.split(',') if processor.areas else []
+                if processor.areas and isinstance(processor.areas, str):
+                    processor.areas = processor.areas.split(',')
  
                 success = processor.download_file()
                 if not success:
