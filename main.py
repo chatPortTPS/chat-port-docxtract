@@ -209,6 +209,9 @@ def main():
                 
                 if processor.areas and isinstance(processor.areas, str):
                     processor.areas = processor.areas.split(',')
+
+                if processor.areas is None:
+                    processor.areas = []
  
                 success = processor.download_file()
                 if not success:
