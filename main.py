@@ -77,7 +77,7 @@ class DocumentProcessor:
 
         # Inicializar extractor de palabras clave (usando KeyBERT por defecto)
         # Opciones: 'keybert', 'yake', 'rake', 'tfidf', 'all'
-        self.keyword_extractor = KeywordExtractor(method='keybert', top_n=5)
+        self.keyword_extractor = KeywordExtractor(method='keybert', top_n=10)
 
 
     def download_file(self):
@@ -104,7 +104,7 @@ class DocumentProcessor:
         if self.keyword_extractor is None:
             raise ValueError("KeywordExtractor no está disponible")
 
-        texto_completo = self.texto
+        texto_completo = self.texto.get('contenido', {}).get('texto', '')
 
         if not texto_completo:
             raise ValueError("No hay texto para extraer palabras clave")
