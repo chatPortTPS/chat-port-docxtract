@@ -84,8 +84,7 @@ class ElasticsearchConnector:
             self.es.close()
             self.connected = False
             logger.info("Desconectado de Elasticsearch")
-
-
+ 
     def create_index_if_not_exists(self, mapping: Dict[str, Any] = None) -> bool:
         """
         Crea el índice si no existe con el mapping especificado
@@ -161,51 +160,6 @@ class ElasticsearchConnector:
             
         except Exception as e:
             logger.error(f"Error al guardar documento {doc_id}: {e}")
-            return False
-    
-    def save_document_keywords(self, doc_id: str, ruta: str, titulo: str, keywords: List[Dict[str, Any]]) -> bool:
-        """
-        Guarda los keywords de un documento como metadato en Elasticsearch
-        
-        Args:
-            doc_id: ID único del documento
-            ruta: Ruta del documento
-            titulo: Título del documento
-            keywords: Lista de keywords a guardar
-            
-        Returns:
-            True si se guardaron correctamente, False en caso contrario
-        """
-        if not self.connected:
-            logger.error("No hay conexión con Elasticsearch")
-            return False
-        
-        try: 
-            
-            # Antes de guardar se debe eliminar el documento si ya existe para evitar duplicados
-            self.es.delete(index=self.index_name_keywords, id=doc_id, ignore=[404])
-
-            # Preparar cuerpo de actualización
-            document = {
-                "ruta": ruta,
-                "titulo": titulo,
-                "documento": doc_id,
-                "keywords": keywords, 
-                "fecha": datetime.now().isoformat()
-            }
-
-            # Actualizar el documento con los keywords
-            response = self.es.index(index=self.index_name_keywords, id=doc_id, body=document)
-            
-            logger.info(f"Keywords guardados para documento {doc_id} en índice {self.index_name_keywords}")
-
-            return response['result'] == 'created'
-            
-        except NotFoundError:
-            logger.error(f"Documento {doc_id} no encontrado en índice {self.index_name_keywords}")
-            return False
-        except Exception as e:
-            logger.error(f"Error al guardar keywords para documento {doc_id}: {e}")
             return False
 
     def __enter__(self):

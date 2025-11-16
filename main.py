@@ -39,7 +39,6 @@ from langchain.text_splitter import TextSplitter
 from vectorization.text_vectorizer import TextVectorizer
 from elasticsearch_connector.connector import ElasticsearchConnector
 from artemis import ArtemisConnector
-from keywords import KeywordExtractor
 
 class DocumentProcessor:
     """Aplicación principal del sistema de procesamiento de documentos."""
@@ -52,8 +51,7 @@ class DocumentProcessor:
         self.texto = None
         self.splitter = None
         self.fragments = []
-        self.vectorizer = text_vectorizer
-        self.keyword_extractor = None
+        self.vectorizer = text_vectorizer 
         self.keywords = []
         self.areas = None
 
@@ -74,12 +72,7 @@ class DocumentProcessor:
         self.document_text_converter = DocumentTextConverter()
         self.splitter = TextSplitter()
         self.es_connector = ElasticsearchConnector()
-
-        # Inicializar extractor de palabras clave (usando KeyBERT por defecto)
-        # Opciones: 'keybert', 'yake', 'rake', 'tfidf', 'all'
-        self.keyword_extractor = KeywordExtractor(method='keybert', top_n=10)
-
-
+ 
     def download_file(self):
         if self.sftp_connector is None:
             print("Error: SFTP Connector no está disponible")
@@ -180,27 +173,6 @@ class DocumentProcessor:
             print(f"Error enviando fragmento a Elasticsearch: {e}")
             return False
         
-    def send_to_elasticsearch_keywords(self) -> bool:
-        """Envía las palabras clave del documento a Elasticsearch como metadato del documento.
-           Se envia por un indice separado ya que son las keywords completas del documento, no de un fragmento.
-           Evita duplicados.
-        """
-        
-        try:
-            self.es_connector.connect()
-            success = self.es_connector.save_document_keywords(
-                doc_id=self.document_uuid,
-                ruta=self.ruta,
-                titulo=self.nombre,
-                keywords=self.keywords
-            )
-            self.es_connector.disconnect()
-            return success
-        except Exception as e:
-            print(f"Error enviando palabras clave a Elasticsearch: {e}")
-            return False
-
-
 def main():
     
     try:
@@ -243,11 +215,7 @@ def main():
                 processor.extraer_documento()
                 if not processor.texto:
                     raise Exception("No se pudo extraer texto del documento")
-
-                # Extraer palabras clave del documento
-                keywords = processor.extract_keywords()
-                print(f"Palabras clave extraídas: {json.dumps(keywords, indent=2, ensure_ascii=False)}")
-
+ 
                 fragments = processor.split_text()
                 if not fragments:
                     raise Exception("No se pudieron crear fragmentos de texto")
