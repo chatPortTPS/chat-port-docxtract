@@ -104,7 +104,7 @@ class DocumentProcessor:
         if self.keyword_extractor is None:
             raise ValueError("KeywordExtractor no está disponible")
 
-        texto_completo = self.texto.get('contenido', {}).get('texto', '')
+        texto_completo = self.texto
 
         if not texto_completo:
             raise ValueError("No hay texto para extraer palabras clave")
