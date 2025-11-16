@@ -137,8 +137,7 @@ class DocumentProcessor:
                 "fecha_creacion": self.creacion,
                 "fecha_modificacion": self.actualizacion,
                 "correo": self.correo,
-                "privacidad": self.privacidad,
-                "keywords": self.keywords  # Agregar palabras clave extraídas
+                "privacidad": self.privacidad
             },
 
             "ruta": self.ruta,
