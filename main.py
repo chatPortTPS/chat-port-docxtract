@@ -62,6 +62,7 @@ class DocumentProcessor:
         self.correo = None
         self.autor = None
         self.ruta = None
+        self.agente = None
 
         self._initialize_components()
 
@@ -137,7 +138,8 @@ class DocumentProcessor:
                 "fecha_creacion": self.creacion,
                 "fecha_modificacion": self.actualizacion,
                 "correo": self.correo,
-                "privacidad": self.privacidad
+                "privacidad": self.privacidad,
+                "agente": self.agente
             },
 
             "ruta": self.ruta,
@@ -203,6 +205,7 @@ def main():
                 processor.correo = data.get('correo')
                 processor.autor = data.get('autor')
                 processor.ruta = data.get('ruta')
+                processor.agente = data.get('agente')
 
                 if not processor.document_uuid:
                     raise ValueError("El mensaje no contiene 'document_uuid' del documento")
@@ -213,6 +216,9 @@ def main():
                 if not processor.areas or not isinstance(processor.areas, list):
                     processor.areas = []
  
+                if not processor.agente or not isinstance(processor.agente, str):
+                    processor.agente = ""
+
                 success = processor.download_file()
                 if not success:
                     raise Exception("No se pudo descargar el archivo desde SFTP")
