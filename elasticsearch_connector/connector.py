@@ -122,6 +122,32 @@ class ElasticsearchConnector:
             logger.error(f"Error inesperado al crear índice '{self.index_name}': {e}")
             return False
     
+    def delete_document(self, doc_id: str) -> bool:
+        """
+        Elimina un documento del índice de Elasticsearch
+        
+        Args:
+            doc_id: ID único del documento a eliminar
+            
+        Returns:
+            True si se eliminó correctamente, False en caso contrario
+        """
+        if not self.connected:
+            logger.error("No hay conexión con Elasticsearch")
+            return False
+        
+        try:
+            response = self.es.delete(index=self.index_name, id=doc_id)
+            logger.info(f"Documento eliminado: {doc_id} del índice {self.index_name}")
+            return response['result'] == 'deleted'
+            
+        except NotFoundError:
+            logger.warning(f"Documento no encontrado para eliminar: {doc_id}")
+            return False
+        except Exception as e:
+            logger.error(f"Error al eliminar documento {doc_id}: {e}")
+            return False
+
 
     def save_document(self, document: Dict[str, Any], doc_id: str = None) -> bool:
         """
@@ -144,10 +170,7 @@ class ElasticsearchConnector:
                 document['metadata']['processed_date'] = datetime.now().isoformat()
             
             # Indexar documento
-            if doc_id:
-                # primero se intenta eliminar el documento si ya existe
-                self.es.delete(index=self.index_name, id=doc_id, ignore=[404])
-
+            if doc_id: 
                 response = self.es.index(index=self.index_name, id=doc_id, body=document)
         
             else:

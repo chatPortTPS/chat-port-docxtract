@@ -162,16 +162,27 @@ class DocumentProcessor:
             fragment['content_vector'] = vector
  
         return self.fragments
-    
+     
     def send_to_elasticsearch(self, fragment: Dict[str, Any]) -> bool:
         """Envía un fragmento a Elasticsearch.""" 
         try:
-            self.es_connector.connect()
-            success = self.es_connector.save_document(fragment, self.document_uuid)
+            self.es_connector.connect() 
+            success = self.es_connector.save_document(fragment, self.document_uuid) 
             self.es_connector.disconnect()
             return success
         except Exception as e:
             print(f"Error enviando fragmento a Elasticsearch: {e}")
+            return False
+    
+    def delete_document_from_elasticsearch(self) -> bool:
+        """Elimina un documento de Elasticsearch usando su doc_id."""
+        try:
+            self.es_connector.connect() 
+            success = self.es_connector.delete_document(self.document_uuid) 
+            self.es_connector.disconnect()
+            return success
+        except Exception as e:
+            print(f"Error eliminando documento de Elasticsearch: {e}")
             return False
         
 def main():
@@ -235,6 +246,9 @@ def main():
 
                 if not processor.fragments:
                     raise Exception("No se pudieron vectorizar los fragmentos de texto")
+
+                # Por si existe el documento primero lo tratamos de eliminar 
+                processor.delete_document_from_elasticsearch()
 
                 for i, fragment in enumerate(processor.fragments): 
                     print(f"Fragmento {i+1}/{len(processor.fragments)}: {json.dumps(fragment, indent=2, ensure_ascii=False)}")
