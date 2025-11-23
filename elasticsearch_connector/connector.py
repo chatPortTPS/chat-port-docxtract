@@ -136,8 +136,19 @@ class ElasticsearchConnector:
             logger.error("No hay conexión con Elasticsearch")
             return False
         
-        try:
-            response = self.es.delete(index=self.index_name, id=doc_id)
+        try: 
+
+            response = self.es.delete_by_query(
+                index=self.index_name,
+                body={
+                    "query": {
+                        "term": {
+                            "doc_id": doc_id
+                        }
+                    }
+                }
+            )
+            
             logger.info(f"Documento eliminado: {doc_id} del índice {self.index_name}")
             return response['result'] == 'deleted'
             
@@ -171,7 +182,7 @@ class ElasticsearchConnector:
             
             # Indexar documento
             if doc_id: 
-                response = self.es.index(index=self.index_name, id=doc_id, body=document)
+                response = self.es.index(index=self.index_name, body=document)
         
             else:
                 logger.error("No se proporcionó doc_id para el documento")
