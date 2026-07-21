@@ -56,7 +56,7 @@ COPY . /app
 RUN mkdir -p /documentos_download && chmod 777 /documentos_download
 
 # Pre-download the model during build (optional)
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('Qwen/Qwen3-Embedding-0.6B')"
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('Qwen/Qwen3-Embedding-0.6B') "
 
 
 # Run the main application
