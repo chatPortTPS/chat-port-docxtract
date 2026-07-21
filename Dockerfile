@@ -29,9 +29,8 @@ RUN apt-get update \
        build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Pre-create cache directories with permissive permissions (for runtime/model downloads)
-RUN mkdir -p /app/.cache /app/.cache/huggingface/hub /app/.cache/transformers /app/.cache/sentence-transformers \
-    && chmod -R 777 /app/.cache
+# Pre-create cache directories
+RUN mkdir -p /app/.cache /app/.cache/huggingface/hub /app/.cache/transformers /app/.cache/sentence-transformers
 
 # Workdir
 WORKDIR /app
@@ -57,6 +56,9 @@ RUN mkdir -p /documentos_download && chmod 777 /documentos_download
 
 # Pre-download the model during build (optional)
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('Qwen/Qwen3-Embedding-0.6B') "
+
+# Fix permissions AFTER model download so OpenShift's random UID can write to cache at runtime
+RUN chmod -R 777 /app/.cache
 
 
 # Run the main application
