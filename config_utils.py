@@ -61,7 +61,7 @@ def get_text_splitter_config():
 def get_vectorization_config():
     """Configuración de vectorización"""
     return {
-        'model_name': os.getenv('VECTORIZATION_MODEL', 'paraphrase-multilingual-MiniLM-L12-v2'),
+        'model_name': os.getenv('VECTORIZATION_MODEL', 'Qwen/Qwen3-Embedding-0.6B'),
         'device': os.getenv('VECTORIZATION_DEVICE', 'cpu'),
         'batch_size': int(os.getenv('VECTORIZATION_BATCH_SIZE', '32'))
     }
@@ -84,6 +84,6 @@ def get_keyword_extractor_config():
     """Configuración del extractor de keywords"""
     return {
         'model_spacy': os.getenv('MODEL_SPACY', 'es_core_news_md'),
-        'model_sentence_transformers': os.getenv('VECTORIZATION_MODEL', 'paraphrase-multilingual-MiniLM-L12-v2'),
+        'model_sentence_transformers': os.getenv('VECTORIZATION_MODEL', 'Qwen/Qwen3-Embedding-0.6B'),
         'stopwords_file': os.getenv('STOPWORDS_FILE', 'spanish.txt')
     }

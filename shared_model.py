@@ -53,7 +53,7 @@ class SharedModelManager:
         return cls._instance
     
     @classmethod
-    def get_model(cls, model_name: str = "paraphrase-multilingual-MiniLM-L12-v2", 
+    def get_model(cls, model_name: str = "Qwen/Qwen3-Embedding-0.6B", 
                   device: str = "auto"):
         """
         Obtiene la instancia del modelo compartido.
@@ -153,7 +153,7 @@ class SharedModelManager:
 
 
 # Función de conveniencia para obtener el modelo
-def get_shared_model(model_name: str = "paraphrase-multilingual-MiniLM-L12-v2", 
+def get_shared_model(model_name: str = "Qwen/Qwen3-Embedding-0.6B", 
                      device: str = "auto"):
     """
     Función de conveniencia para obtener el modelo compartido.
