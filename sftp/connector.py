@@ -204,7 +204,10 @@ class SftpConnector:
         
         try:
 
-            remote_path = '/mnt/sgd_qa/' + name_archivo
+            remote_path = self.get_remote_input_path() + '/' + name_archivo
+
+            #remote_path = '/mnt/sgd_qa/' + name_archivo
+            
             local_path  = '/documentos_download/' + name_archivo
  
             logger.info(f"Descargando: {remote_path} -> {local_path}")

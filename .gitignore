@@ -75,3 +75,5 @@ output/
 extracciones/
 documentos_procesados/
 docker-compose.yml
+
+init.jsonl

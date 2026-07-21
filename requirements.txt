@@ -23,21 +23,19 @@ elasticsearch==8.11.1
 python-dotenv==1.0.0
 
 # PyTorch CPU-only (evita paquetes CUDA)
-torch==2.1.0+cpu
-torchvision==0.16.0+cpu   # alineado con torch 2.1.x
+torch==2.2.0+cpu
+torchvision==0.17.0+cpu
 
 # NLP stack
-sentence-transformers==2.2.2
-transformers==4.35.2
-huggingface-hub==0.19.4
+sentence-transformers>=2.4.0
+transformers>=4.38.0
+huggingface-hub>=0.20.0
 
 # LangChain (deja que resuelva sus sub-módulos compatibles)
 langchain==0.1.16
 langchain-text-splitters      # sin versión -> compatible con langchain 0.1.16
 langchain-community           # sin versión -> compatible con langchain 0.1.16
 # (No fijar langchain-core ni langsmith manualmente)
-
-
  
 # Dependencias para extracción de palabras clave
 
@@ -55,3 +53,7 @@ scikit-learn>=1.3.0
 
 # Dependencias adicionales
 nltk>=3.8.0 
+
+
+spacy>=3.7.0
+es_core_news_md @ https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.7.0/es_core_news_md-3.7.0-py3-none-any.whl

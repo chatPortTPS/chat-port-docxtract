@@ -1,12 +1,58 @@
+# Extra index for PyTorch CPU
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Document processing
 pymupdf==1.23.14
-python-docx==1.1.0
 openpyxl==3.1.2
 camelot-py==0.10.1
-opencv-python>=3.4.2.17
 tabula-py==2.8.2
+
+# Data manipulation
 pandas==2.1.4
+numpy==1.26.4
+python-pptx==1.0.2
+python-docx==1.2.0
+
+
+# Networking and messaging
 stomp.py==8.1.0
 paramiko==3.3.1
 elasticsearch==8.11.1
+
+# Environment configuration
 python-dotenv==1.0.0
-langchain==0.1.0
+
+# PyTorch CPU-only (avoid CUDA packages)
+torch==2.2.0+cpu
+torchvision==0.17.0+cpu
+
+# NLP stack
+sentence-transformers>=2.4.0
+transformers>=4.38.0
+huggingface-hub>=0.20.0
+
+# LangChain (let it resolve compatible sub-modules)
+langchain==0.1.16
+langchain-text-splitters
+langchain-community
+
+# Keyword extraction dependencies
+
+# KeyBERT - BERT-based keyword extraction
+keybert>=0.8.0
+
+# YAKE - Yet Another Keyword Extractor
+yake>=0.4.8
+
+# RAKE - Rapid Automatic Keyword Extraction
+rake-nltk>=1.0.6
+
+# scikit-learn for TF-IDF
+scikit-learn>=1.3.0
+
+# Additional dependencies
+nltk>=3.8.0 
+
+
+spacy>=3.7.0
+es_core_news_md @ https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.7.0/es_core_news_md-3.7.0-py3-none-any.whl

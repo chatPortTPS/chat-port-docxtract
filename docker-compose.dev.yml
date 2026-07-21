@@ -32,7 +32,7 @@ services:
       - TEXT_CHUNK_OVERLAP=200
 
       # Vectorization
-      - VECTORIZATION_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - VECTORIZATION_MODEL=Qwen/Qwen3-Embedding-0.6B
       - VECTORIZATION_DEVICE=cpu
       - VECTORIZATION_BATCH_SIZE=32
 

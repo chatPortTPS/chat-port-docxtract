@@ -130,3 +130,7 @@ Los logs se almacenan en el directorio `logs/` con información de todos los com
 - `elasticsearch` - Indexación y búsqueda
 - `stomp.py` - Cliente Artemis
 
+
+
+py .\main.py --bulk-load
+

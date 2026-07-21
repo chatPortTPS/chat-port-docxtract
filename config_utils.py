@@ -79,3 +79,11 @@ def get_text_converter_config():
     return {
         'supported_types': [t.strip() for t in types.split(',') if t.strip()]
     }
+
+def get_keyword_extractor_config():
+    """Configuración del extractor de keywords"""
+    return {
+        'model_spacy': os.getenv('MODEL_SPACY', 'es_core_news_md'),
+        'model_sentence_transformers': os.getenv('VECTORIZATION_MODEL', 'paraphrase-multilingual-MiniLM-L12-v2'),
+        'stopwords_file': os.getenv('STOPWORDS_FILE', 'spanish.txt')
+    }

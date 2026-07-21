@@ -14,7 +14,7 @@ ENV HF_HOME=/app/.cache/huggingface \
     SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence-transformers
 
 # System deps required by camelot-py[cv] (ghostscript, opencv runtime libs),
-# tabula-py (Java runtime), and general utilities
+# tabula-py (Java runtime), build tools for spacy/blis/thinc, and general utilities
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        openjdk-17-jre-headless \
@@ -24,6 +24,9 @@ RUN apt-get update \
        libsm6 \
        libxrender1 \
        libxext6 \
+       gcc \
+       g++ \
+       build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Pre-create cache directories with permissive permissions (for runtime/model downloads)
@@ -36,9 +39,15 @@ WORKDIR /app
 # Copy only requirements first for better layer caching
 COPY requirements.txt /app/requirements.txt
 
-# Upgrade pip and install Python dependencies
+# Upgrade pip and install Python dependencies with retry logic
+# Install problematic packages first (opencv, pytorch) for better caching
 RUN python -m pip install --upgrade pip \
- && pip install --no-cache-dir -r /app/requirements.txt
+ && pip install --retries 10 --timeout 300 \
+    torch==2.2.0+cpu torchvision==0.17.0+cpu \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+ && pip install --retries 10 --timeout 300 \
+    opencv-python>=3.4.2.17 \
+ && pip install --retries 10 --timeout 300 -r /app/requirements.txt
 
 # Copy app source code
 COPY . /app
@@ -47,7 +56,7 @@ COPY . /app
 RUN mkdir -p /documentos_download && chmod 777 /documentos_download
 
 # Pre-download the model during build (optional)
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('Qwen/Qwen3-Embedding-0.6B')"
 
 
 # Run the main application

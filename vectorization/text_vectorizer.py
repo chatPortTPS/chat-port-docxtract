@@ -30,6 +30,11 @@ except ImportError:
     TORCH_AVAILABLE = False
     logger.warning("torch no instalado. Se usará CPU para vectorización")
 
+# Importar el gestor de modelo compartido
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared_model import get_shared_model
 
 from .config_vectors import load_config
 
@@ -46,7 +51,6 @@ class TextVectorizer:
         Inicializa el vectorizador.
         
         Args:
-            model_name: Nombre del modelo de sentence-transformers
             device: Dispositivo a usar ('cpu', 'cuda', 'auto')
         """
         if not SENTENCE_TRANSFORMERS_AVAILABLE:
@@ -56,36 +60,15 @@ class TextVectorizer:
 
         self.model_name = config['model_name']
         self.batch_size = config.get('batch_size', 32)
-        self.model = None
-        self.device = self._determine_device(device)
-        self.embedding_dimension = None
-
-        logger.info(f"Inicializando vectorizador con modelo: {self.model_name}")
-        self._load_model()
-    
-
-    def _determine_device(self, device: str) -> str:
-        """Determina el dispositivo a usar para los cálculos."""
-        if device == "auto":
-            if TORCH_AVAILABLE and torch.cuda.is_available():
-                return "cuda"
-            else:
-                return "cpu"
-        return device
-    
-
-    def _load_model(self):
-        """Carga el modelo de embeddings."""
-        try:
-            logger.info(f"Cargando modelo {self.model_name} en {self.device}...")
-           
-            self.model = SentenceTransformer(self.model_name, device=self.device)
-            self.embedding_dimension = self.model.get_sentence_embedding_dimension()
-            
-            logger.info(f"Modelo cargado. Dimensiones: {self.embedding_dimension}")
-
-        except Exception as e:
-            raise RuntimeError(f"Error cargando modelo: {self.model_name} mensaje: {e}")
+        self.device = device
+        
+        logger.info(f"Inicializando vectorizador con modelo compartido: {self.model_name}")
+        
+        # Obtener el modelo compartido (se carga solo la primera vez)
+        self.model = get_shared_model(model_name=self.model_name, device=device)
+        self.embedding_dimension = self.model.get_sentence_embedding_dimension()
+        
+        logger.info(f"Vectorizador inicializado. Dimensiones: {self.embedding_dimension}")
     
 
     def vectorize_text(self, text: str, normalize: bool = True) -> List[float]:
